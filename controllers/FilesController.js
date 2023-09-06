@@ -92,7 +92,7 @@ export default class FilesController {
   }
 
   static async getIndex(req, res) {
-    const { parentId, page = 1 } = req.query;
+    const { parentId = 0, page = 0 } = req.query;
     const perPage = 20;
 
     const files = db.client.collection('files');
@@ -109,7 +109,7 @@ export default class FilesController {
 
     const cursor = await files.aggregate([
       matchQuery,
-      { $skip: (Number(page) - 1) * perPage },
+      { $skip: Number(page) * perPage },
       { $limit: perPage },
     ]);
 
