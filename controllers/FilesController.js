@@ -123,4 +123,58 @@ export default class FilesController {
 
     return res.status(200).json(formattedResult);
   }
+
+  static async putPublish(req, res) {
+    const { id } = req.params;
+
+    const files = db.client.collection('files');
+    const findAsync = promisify(files.findOne);
+    const updateAsync = promisify(files.updateOne);
+
+    const file = await findAsync.call(files, {
+      _id: mongodb.ObjectId(id),
+      userId: mongodb.ObjectId(req.user._id),
+    });
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    await updateAsync.call(
+      files,
+      { _id: mongodb.ObjectId(id) },
+      { $set: { isPublic: true } },
+    );
+
+    file.isPublic = true;
+
+    return res.status(200).json(file);
+  }
+
+  static async putUnpublish(req, res) {
+    const { id } = req.params;
+
+    const files = db.client.collection('files');
+    const findAsync = promisify(files.findOne);
+    const updateAsync = promisify(files.updateOne);
+
+    const file = await findAsync.call(files, {
+      _id: mongodb.ObjectId(id),
+      userId: mongodb.ObjectId(req.user._id),
+    });
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    await updateAsync.call(
+      files,
+      { _id: mongodb.ObjectId(id) },
+      { $set: { isPublic: false } },
+    );
+
+    file.isPublic = false;
+
+    return res.status(200).json(file);
+  }
 }
