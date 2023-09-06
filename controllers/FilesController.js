@@ -97,18 +97,13 @@ export default class FilesController {
 
     const files = db.client.collection('files');
 
-    const matchQuery = {
-      $match: {
-        userId: mongodb.ObjectId(req.user._id),
-      },
-    };
-
-    if (parentId) {
-      matchQuery.$match.parentId = parentId;
-    }
-
     const cursor = await files.aggregate([
-      matchQuery,
+      {
+        $match: {
+          userId: mongodb.ObjectId(req.user._id),
+          parentId: parentId === '0' ? 0 : parentId,
+        },
+      },
       { $skip: Number(page) * perPage },
       { $limit: perPage },
     ]);
