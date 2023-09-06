@@ -37,4 +37,13 @@ export default class UsersController {
       email,
     });
   }
+
+  static async getMe(req, res) {
+    const { user } = req;
+
+    res.status(200).json({
+      id: user._id,
+      email: user.email,
+    });
+  }
 }
