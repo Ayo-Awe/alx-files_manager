@@ -92,18 +92,23 @@ export default class FilesController {
   }
 
   static async getIndex(req, res) {
-    const { parentId = 0, page = 0 } = req.query;
+    const { parentId, page = 0 } = req.query;
     const perPage = 20;
 
     const files = db.client.collection('files');
 
-    const cursor = await files.aggregate([
-      {
-        $match: {
-          userId: mongodb.ObjectId(req.user._id),
-          parentId: parentId === '0' ? 0 : parentId,
-        },
+    const matchQuery = {
+      $match: {
+        userId: mongodb.ObjectId(req.user._id),
       },
+    };
+
+    if (parentId) {
+      matchQuery.$match.parentId = parentId === '0' ? 0 : parentId;
+    }
+
+    const cursor = await files.aggregate([
+      matchQuery,
       { $skip: Number(page) * perPage },
       { $limit: perPage },
     ]);
