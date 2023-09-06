@@ -1,5 +1,5 @@
-import dbClient from "../utils/db";
-import redisClient from "../utils/redis";
+import dbClient from '../utils/db';
+import redisClient from '../utils/redis';
 
 export default class AppController {
   static getStatus(req, res) {
@@ -8,7 +8,7 @@ export default class AppController {
       db: dbClient.isAlive(),
     };
 
-    res.status(200).json(payload);
+    return res.status(200).json(payload);
   }
 
   static async getStats(req, res) {
@@ -17,6 +17,6 @@ export default class AppController {
 
     const payload = { users, files };
 
-    res.status(200).json(payload);
+    return res.status(200).json(payload);
   }
 }
