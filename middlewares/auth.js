@@ -29,3 +29,22 @@ export default async function (req, res, next) {
 
   return next();
 }
+
+export async function passiveAuth(req, res, next) {
+  const users = db.client.collection('users');
+  const findAsync = promisify(users.findOne);
+  const token = req.headers['x-token'];
+
+  if (!token) return next();
+
+  const userId = await redis.get(`auth_${token}`);
+  if (!userId) return next();
+
+  const user = await findAsync.call(users, { _id: mongodb.ObjectId(userId) });
+  if (!user) return next();
+
+  req.user = user;
+  req.token = req.headers['x-token'];
+
+  return next();
+}

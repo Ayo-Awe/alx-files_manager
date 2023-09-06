@@ -1,7 +1,9 @@
 import { promisify } from 'util';
 import mongodb from 'mongodb';
+import mime from 'mime-types';
+import fs from 'fs';
 import db from '../utils/db';
-import fileUtils from '../utils/files';
+import fileUtils, { checkFile } from '../utils/files';
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -176,5 +178,48 @@ export default class FilesController {
     file.isPublic = false;
 
     return res.status(200).json(file);
+  }
+
+  static async getFile(req, res) {
+    const { id } = req.params;
+
+    const files = db.client.collection('files');
+    const findAsync = promisify(files.findOne);
+
+    const file = await findAsync.call(files, {
+      _id: mongodb.ObjectId(id),
+    });
+
+    if (!file) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    if (
+      !file.isPublic
+      && req.user
+      && req.user._id.toString() !== file.userId.toString()
+    ) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    if (file.type === 'folder') {
+      return res.status(400).json({ error: "A folder doesn't have content" });
+    }
+
+    const fileExists = await checkFile(file.localPath);
+
+    if (!fileExists) {
+      return res.status(404).json({ error: 'Not found' });
+    }
+
+    const mimeType = mime.lookup(file.name);
+
+    res.setHeader('Content-Type', mimeType);
+
+    const readStream = fs.createReadStream(file.localPath, {
+      encoding: 'utf-8',
+    });
+
+    return readStream.pipe(res);
   }
 }

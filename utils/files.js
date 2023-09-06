@@ -23,5 +23,15 @@ class FileUtils {
   }
 }
 
+export function checkFile(filePath) {
+  return new Promise((resolve) => fs.access(filePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      return resolve(false);
+    }
+
+    return resolve(true);
+  }));
+}
+
 const fileUtils = new FileUtils();
 export default fileUtils;
