@@ -116,6 +116,11 @@ export default class FilesController {
     const toArray = promisify(cursor.toArray);
     const results = await toArray.call(cursor);
 
-    return res.status(200).json(results);
+    const formattedResult = results.map((r) => {
+      const { _id, ...data } = r;
+      return { ...data, id: _id };
+    });
+
+    return res.status(200).json(formattedResult);
   }
 }
