@@ -28,7 +28,6 @@ export default class AuthController {
       email,
       password: sha1(password),
     });
-
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
     }

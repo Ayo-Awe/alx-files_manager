@@ -2,8 +2,11 @@ import { promisify } from 'util';
 import mongodb from 'mongodb';
 import mime from 'mime-types';
 import fs from 'fs';
+import Queue from 'bull';
 import db from '../utils/db';
 import fileUtils, { checkFile } from '../utils/files';
+
+const fileQueue = new Queue('image thumbnails');
 
 export default class FilesController {
   static async postUpload(req, res) {
@@ -68,6 +71,10 @@ export default class FilesController {
     const file = ops[0];
     file.id = file._id;
     file._id = undefined;
+
+    if (file.type === 'image') {
+      fileQueue.add({ userId: file.userId, fileId: file.id });
+    }
 
     return res.status(201).json(file);
   }
@@ -182,6 +189,7 @@ export default class FilesController {
 
   static async getFile(req, res) {
     const { id } = req.params;
+    const { size } = req.query;
 
     const files = db.client.collection('files');
     const findAsync = promisify(files.findOne);
@@ -215,7 +223,8 @@ export default class FilesController {
 
     res.setHeader('Content-Type', mimeType);
 
-    const readStream = fs.createReadStream(file.localPath, {
+    const path = size ? `${file.localPath}_${size}` : file.localPath;
+    const readStream = fs.createReadStream(path, {
       encoding: 'utf-8',
     });
 
