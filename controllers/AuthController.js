@@ -17,6 +17,10 @@ export default class AuthController {
 
     const { email, password } = extractBasicCredentials(base64Credentials);
 
+    if (!email || !password) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
     const users = db.client.collection('users');
     const findAsync = promisify(users.findOne);
 
@@ -35,7 +39,7 @@ export default class AuthController {
 
     await redisClient.set(key, user._id, authExpiry);
 
-    return res.status(201).json({ token });
+    return res.status(200).json({ token });
   }
 
   static async getDisconnect(req, res) {

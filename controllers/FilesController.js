@@ -46,7 +46,7 @@ export default class FilesController {
       name,
       type,
       isPublic,
-      parentId,
+      parentId: parentId === 0 ? 0 : mongodb.ObjectId(parentId),
       userId: req.user._id,
     };
 
@@ -106,7 +106,7 @@ export default class FilesController {
     };
 
     if (parentId) {
-      matchQuery.$match.parentId = parentId === '0' ? 0 : parentId;
+      matchQuery.$match.parentId = parentId === '0' ? 0 : mongodb.ObjectId(parentId);
     }
 
     const cursor = await files.aggregate([
