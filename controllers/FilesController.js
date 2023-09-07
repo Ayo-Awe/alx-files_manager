@@ -195,9 +195,8 @@ export default class FilesController {
     }
 
     if (
-      !file.isPublic
-      && req.user
-      && req.user._id.toString() !== file.userId.toString()
+      (!file.isPublic && !req.user)
+      || (!file.isPublic && req.user._id.toString() !== file.userId.toString())
     ) {
       return res.status(404).json({ error: 'Not found' });
     }
